@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Restaurant</title>
+</head>
+<body>
+    <h2>Add Restaurant</h2>
+    <form action="/restaurant/add_form" method="post">
+        <label for="name">Restaurant Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="num_tables">Number of Tables:</label>
+        <input type="number" id="num_tables" name="num_tables" required><br><br>
+
+        <label for="table_capacity">Table Capacity (seats per table):</label>
+        <input type="number" id="table_capacity" name="table_capacity" required><br><br>
+
+        <label for="working_time">Working Time (e.g., 09:00-22:00):</label>
+        <input type="text" id="working_time" name="working_time" required><br><br>
+
+        <button type="submit">Add Restaurant</button>
+    </form>
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservations for Your Restaurants</title>
+</head>
+<body>
+    <h2>Reservations for Your Restaurants</h2>
+    <ul>
+    {% for item in reservations %}
+        <li>
+            Restaurant: {{ item.restaurant.name }},
+            Client: {{ item.client.email }},
+            Start: {{ item.reservation.start_time }},
+            End: {{ item.reservation.end_time }}
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

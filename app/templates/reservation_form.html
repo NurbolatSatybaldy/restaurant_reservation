@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Reservation</title>
+    <script>
+        async function submitReservation(event) {
+            event.preventDefault(); // Prevent the normal form submission
+            const form = event.target;
+            const formData = new FormData(form);
+            const restaurantId = form.getAttribute("data-restaurant-id");
+
+            // Convert formData to URL-encoded string
+            const data = new URLSearchParams();
+            for (const pair of formData) {
+                data.append(pair[0], pair[1]);
+            }
+
+            try {
+                const response = await fetch(`/reservation/book/${restaurantId}`, {
+                    method: 'POST',
+                    body: data
+                });
+                if (!response.ok) {
+                    // If response is not ok, assume JSON error response
+                    const errorData = await response.json();
+                    document.getElementById("errorMessage").innerText = errorData.error;
+                } else {
+                    // On success, redirect to reservations page
+                    window.location.href = "/reservations";
+                }
+            } catch (error) {
+                console.error("Error submitting reservation:", error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Book a Reservation at {{ restaurant.name }}</h2>
+    <!-- Placeholder for error messages -->
+    <div id="errorMessage" style="color:red;"></div>
+    <form data-restaurant-id="{{ restaurant.id }}" onsubmit="submitReservation(event)">
+        <label for="table_number">Table Number:</label>
+        <select id="table_number" name="table_number" required>
+            {% for num in table_numbers %}
+            <option value="{{ num }}">Table {{ num }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" id="start_time" name="start_time" required><br><br>
+
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" name="end_time" required><br><br>
+
+        <button type="submit">Book Reservation</button>
+    </form>
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

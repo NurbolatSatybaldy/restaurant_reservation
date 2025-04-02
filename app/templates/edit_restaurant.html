@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Restaurant</title>
+</head>
+<body>
+    <h2>Edit Restaurant: {{ restaurant.name }}</h2>
+    <form action="/restaurant/edit/{{ restaurant.id }}" method="post">
+        <label for="name">Restaurant Name:</label>
+        <input type="text" id="name" name="name" value="{{ restaurant.name }}" required><br><br>
+
+        <label for="num_tables">Number of Tables:</label>
+        <input type="number" id="num_tables" name="num_tables" value="{{ restaurant.num_tables }}" required><br><br>
+
+        <label for="table_capacity">Table Capacity:</label>
+        <input type="number" id="table_capacity" name="table_capacity" value="{{ restaurant.table_capacity }}" required><br><br>
+
+        <label for="working_time">Working Time:</label>
+        <input type="text" id="working_time" name="working_time" value="{{ restaurant.working_time }}" required><br><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

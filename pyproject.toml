@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "restaurant_reservation"
+version = "0.1.0"
+description = ""
+authors = ["Nurbolat <n.satybaldi2003@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.0"
+Jinja2 = "^3.1.6"
+SQLAlchemy = "^2.0.40"
+python-multipart = "^0.0.20"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+pydantic = {extras = ["email"], version = "^2.11.1"}
+email-validator = "^2.2.0"
+python-jose = {extras = ["cryptography"], version = "^3.4.0"}
+itsdangerous = "^2.2.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

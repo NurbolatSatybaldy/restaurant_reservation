@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Reservations</title>
+</head>
+<body>
+    <h2>My Reservations</h2>
+    <ul>
+    {% for reservation in reservations %}
+        <li>
+            Restaurant ID: {{ reservation.restaurant_id }},
+            Start: {{ reservation.start_time }},
+            End: {{ reservation.end_time }}
+            <form action="/reservation/cancel/{{ reservation.id }}" method="post" style="display:inline;">
+                <button type="submit">Cancel</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Client Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.email }}</h2>
+    <a href="/profile">My Profile</a> | <a href="/auth/logout">Logout</a>
+    <h3>Available Restaurants</h3>
+    <ul>
+        {% for restaurant in restaurants %}
+        <li>
+            <a href="/restaurant/detail/{{ restaurant.id }}">{{ restaurant.name }}</a>
+            - <a href="/reservation/book/{{ restaurant.id }}">Book Now</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <h3>My Reservations</h3>
+    <ul>
+        {% for reservation in reservations %}
+        <li>
+            Restaurant ID: {{ reservation.restaurant_id }},
+            Table: {{ reservation.table_number }},
+            Start: {{ reservation.start_time }},
+            End: {{ reservation.end_time }}
+            <form action="/reservation/cancel/{{ reservation.id }}" method="post" style="display:inline;">
+                <button type="submit">Cancel</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

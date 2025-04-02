@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Host Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.email }}</h2>
+    <a href="/profile">My Profile</a> | <a href="/auth/logout">Logout</a>
+    <h3>Your Restaurants</h3>
+    <ul>
+        {% for restaurant in restaurants %}
+        <li>
+            {{ restaurant.name }} -
+            <a href="/restaurant/edit/{{ restaurant.id }}">Edit</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="/restaurant/add_form">Add New Restaurant</a>
+    <h3>Reservations for Your Restaurants</h3>
+    <ul>
+        {% for item in reservations %}
+        <li>
+            Restaurant: {{ item.restaurant.name }},
+            Client: {{ item.client.email }},
+            Start: {{ item.reservation.start_time }},
+            End: {{ item.reservation.end_time }}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
