@@ -5,14 +5,14 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: str  # Must be either "client" or "host"
+    role: str
 
 class UserResponse(UserBase):
     id: int
     role: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserLogin(UserBase):
     password: str

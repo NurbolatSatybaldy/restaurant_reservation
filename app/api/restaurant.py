@@ -19,7 +19,7 @@ def add_restaurant(
         num_tables: int = Form(...),
         table_capacity: int = Form(...),
         working_time: str = Form(...),
-        token: str = Form(...),  # For non-session (API) testing
+        token: str = Form(...),
         db: Session = Depends(get_db)
 ):
     # Decode the token

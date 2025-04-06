@@ -18,10 +18,9 @@ def register(
         request: Request,
         email: str = Form(...),
         password: str = Form(...),
-        role: str = Form(...),  # "client" or "host"
+        role: str = Form(...),
         db: Session = Depends(get_db)
 ):
-    # Check if the user already exists
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -35,7 +34,6 @@ def register(
     db.commit()
     db.refresh(new_user)
 
-    # After successful registration, redirect to the login page.
     return RedirectResponse(url="/login", status_code=302)
 
 
@@ -54,7 +52,6 @@ def login(
     access_token = create_access_token(
         data={"sub": user_obj.email}, expires_delta=access_token_expires
     )
-    # Store the token in the session so the user stays logged in
     request.session["access_token"] = access_token
     return RedirectResponse(url="/dashboard", status_code=302)
 

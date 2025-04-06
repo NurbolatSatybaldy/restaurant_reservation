@@ -1,13 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Restaurant Detail</title>
+    <title>{{ restaurant.name }}</title>
 </head>
 <body>
     <h2>{{ restaurant.name }}</h2>
     <p>Number of Tables: {{ restaurant.num_tables }}</p>
     <p>Table Capacity: {{ restaurant.table_capacity }}</p>
     <p>Working Time: {{ restaurant.working_time }}</p>
+
+    <h3>Average Rating:
+        {% if avg_rating %}
+            {{ avg_rating | round(2) }} / 5
+        {% else %}
+            No ratings yet.
+        {% endif %}
+    </h3>
+
+    <h3>Comments</h3>
+    <ul>
+        {% for comment in comments %}
+            <li>
+                {% if comment.user.role == "host" %}
+                    <strong>Host: </strong>
+                {% else %}
+                    <strong>{{ comment.user.email }}: </strong>
+                {% endif %}
+                {{ comment.comment }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <form action="/restaurant/comment/{{ restaurant.id }}" method="post">
+        <textarea name="comment" required></textarea><br>
+        <button type="submit">Post Comment</button>
+    </form>
+
+    {% if user.role == "client" %}
+        <form action="/restaurant/rate/{{ restaurant.id }}" method="post">
+            <label for="rating">Rate this Restaurant (1-5):</label>
+            <input type="number" id="rating" name="rating" min="1" max="5" required><br>
+            <button type="submit">Submit Rating</button>
+        </form>
+    {% endif %}
+
     <a href="/dashboard">Back to Dashboard</a>
 </body>
 </html>

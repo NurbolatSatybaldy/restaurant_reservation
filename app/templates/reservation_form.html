@@ -23,7 +23,14 @@
                 if (!response.ok) {
                     // If response is not ok, assume JSON error response
                     const errorData = await response.json();
-                    document.getElementById("errorMessage").innerText = errorData.error;
+                    const errorMessage = errorData.error || "An error occurred";
+
+                    // Check if it's a "not working hours" error
+                    if (errorMessage.includes("working hours")) {
+                        document.getElementById("errorMessage").innerText = "Not working hours";
+                    } else {
+                        document.getElementById("errorMessage").innerText = errorMessage;
+                    }
                 } else {
                     // On success, redirect to reservations page
                     window.location.href = "/reservations";
@@ -36,7 +43,6 @@
 </head>
 <body>
     <h2>Book a Reservation at {{ restaurant.name }}</h2>
-    <!-- Placeholder for error messages -->
     <div id="errorMessage" style="color:red;"></div>
     <form data-restaurant-id="{{ restaurant.id }}" onsubmit="submitReservation(event)">
         <label for="table_number">Table Number:</label>

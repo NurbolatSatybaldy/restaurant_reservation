@@ -8,6 +8,8 @@ from app.db.database import get_db
 from app.models.user import User
 from app.models.restaurant import Restaurant
 from app.models.reservation import Reservation
+from app.models.comment import Comment
+from app.models.rating import Rating
 from app.core.security import SECRET_KEY, ALGORITHM
 
 router = APIRouter()
@@ -31,7 +33,7 @@ def get_current_user_from_session(request: Request, db: Session = Depends(get_db
     return user
 
 
-# --- GET endpoints for login and register pages ---
+# login and register
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -43,7 +45,7 @@ def register_form(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 
-# --- Dashboard and Profile Endpoints ---
+# Dashboard and Profile
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
@@ -67,15 +69,64 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
                                            "reservations": reservations})
 
 
-# --- Restaurant Detail Endpoint (renamed to avoid conflict) ---
+# Restaurant Detail
 
 @router.get("/restaurant/detail/{restaurant_id}", response_class=HTMLResponse)
 def restaurant_detail(request: Request, restaurant_id: int, db: Session = Depends(get_db)):
+    user = get_current_user_from_session(request, db)  # Get the current logged-in user
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
-    return templates.TemplateResponse("restaurant_detail.html", {"request": request, "restaurant": restaurant})
 
+
+    comments = db.query(Comment).filter(Comment.restaurant_id == restaurant_id).all()
+
+
+    ratings = db.query(Rating).filter(Rating.restaurant_id == restaurant_id).all()
+    avg_rating = None
+    if ratings:
+        avg_rating = sum([rating.rating for rating in ratings]) / len(ratings)
+
+    return templates.TemplateResponse("restaurant_detail.html", {
+        "request": request,
+        "restaurant": restaurant,
+        "comments": comments,
+        "avg_rating": avg_rating,
+        "user": user
+    })
+
+
+# Restaurant Comment Section and Rating
+
+@router.post("/restaurant/comment/{restaurant_id}")
+def add_comment(request: Request, restaurant_id: int, comment: str = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user_from_session(request, db)
+    new_comment = Comment(user_id=user.id, restaurant_id=restaurant_id, comment=comment)
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    return RedirectResponse(url=f"/restaurant/detail/{restaurant_id}", status_code=302)
+
+
+@router.post("/restaurant/rate/{restaurant_id}")
+def rate_restaurant(request: Request, restaurant_id: int, rating: int = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user_from_session(request, db)
+    if user.role == "host":
+        raise HTTPException(status_code=403, detail="Hosts cannot rate restaurants.")
+    if rating < 1 or rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
+    existing_rating = db.query(Rating).filter(Rating.restaurant_id == restaurant_id, Rating.user_id == user.id).first()
+    if existing_rating:
+        existing_rating.rating = rating
+        db.commit()
+    else:
+        new_rating = Rating(user_id=user.id, restaurant_id=restaurant_id, rating=rating)
+        db.add(new_rating)
+        db.commit()
+    return RedirectResponse(url=f"/restaurant/detail/{restaurant_id}", status_code=302)
+
+
+# Profile
 
 @router.get("/profile", response_class=HTMLResponse)
 def profile(request: Request, db: Session = Depends(get_db)):
@@ -83,7 +134,7 @@ def profile(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("profile.html", {"request": request, "user": user})
 
 
-# --- Endpoints for hosts to add/edit restaurants ---
+# hosts to add/edit restaurants
 
 @router.get("/restaurant/add_form", response_class=HTMLResponse)
 def add_restaurant_form_view(request: Request, db: Session = Depends(get_db)):
@@ -149,9 +200,9 @@ def edit_restaurant(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
-# --- Reservation Endpoints ---
+# Reservation
 
-# GET: Show a reservation booking form for a specific restaurant (clients only)
+# reservation booking form
 @router.get("/reservation/book/{restaurant_id}", response_class=HTMLResponse)
 def reservation_form(request: Request, restaurant_id: int, db: Session = Depends(get_db)):
     user = get_current_user_from_session(request, db)
@@ -160,20 +211,19 @@ def reservation_form(request: Request, restaurant_id: int, db: Session = Depends
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
-    # Provide a list of table numbers (1 to num_tables) for selection.
     table_numbers = list(range(1, restaurant.num_tables + 1))
     return templates.TemplateResponse("reservation_form.html",
                                       {"request": request, "restaurant": restaurant, "table_numbers": table_numbers,
                                        "error": ""})
 
 
-# POST: Process a reservation booking request with table selection and time limit
+# reservation booking request with table selection and time limit
 @router.post("/reservation/book/{restaurant_id}")
 def book_reservation(
         request: Request,
         restaurant_id: int,
         table_number: int = Form(...),
-        start_time: str = Form(...),  # Expecting ISO format: "YYYY-MM-DDTHH:MM"
+        start_time: str = Form(...),
         end_time: str = Form(...),
         db: Session = Depends(get_db)
 ):
@@ -184,7 +234,6 @@ def book_reservation(
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
 
-    # Validate table number is within restaurant range
     if not (1 <= table_number <= restaurant.num_tables):
         raise HTTPException(status_code=400, detail="Invalid table number for this restaurant.")
 
@@ -198,14 +247,11 @@ def book_reservation(
         raise HTTPException(status_code=400, detail="Start time must be before end time.")
 
     now = datetime.now()
-    # Ensure reservation is not in the past
     if new_start < now:
         raise HTTPException(status_code=400, detail="Reservation time cannot be in the past.")
-    # Limit booking to today, tomorrow, and the day after tomorrow (2 days ahead)
     if new_start > now + timedelta(days=2):
         raise HTTPException(status_code=400, detail="You can only book reservations up to two days ahead.")
 
-    # Check if the reservation falls within restaurant working hours
     try:
         work_start_str, work_end_str = restaurant.working_time.split("-")
         work_start = datetime.strptime(work_start_str.strip(), "%H:%M").time()
@@ -216,7 +262,6 @@ def book_reservation(
     if not (work_start <= new_start.time() <= work_end and work_start <= new_end.time() <= work_end):
         raise HTTPException(status_code=400, detail="Reservation time must be within restaurant working hours.")
 
-    # Check if the specific table is available for the desired time slot.
     overlapping = db.query(Reservation).filter(
         Reservation.restaurant_id == restaurant_id,
         Reservation.table_number == table_number,
@@ -225,11 +270,9 @@ def book_reservation(
     ).count()
 
     if overlapping > 0:
-        # Return JSON response indicating the table is booked
         return JSONResponse(status_code=400,
                             content={"error": f"Table {table_number} is already booked for the selected time slot."})
 
-    # Create the reservation
     reservation = Reservation(
         restaurant_id=restaurant_id,
         client_id=user.id,
@@ -244,7 +287,7 @@ def book_reservation(
     return RedirectResponse(url="/reservations", status_code=302)
 
 
-# GET: View reservations (clients see their own; hosts see reservations for their restaurants)
+# View reservations
 @router.get("/reservations", response_class=HTMLResponse)
 def view_reservations(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_session(request, db)
@@ -266,7 +309,7 @@ def view_reservations(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid role.")
 
 
-# POST: Cancel a reservation (clients only)
+# Cancel a reservation
 @router.post("/reservation/cancel/{reservation_id}")
 def cancel_reservation(request: Request, reservation_id: int, db: Session = Depends(get_db)):
     user = get_current_user_from_session(request, db)

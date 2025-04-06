@@ -8,6 +8,6 @@ class Reservation(Base):
     id = Column(Integer, primary_key=True, index=True)
     restaurant_id = Column(Integer, ForeignKey("restaurants.id"), nullable=False)
     client_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    table_number = Column(Integer, nullable=False)  # New field: specific table number
+    table_number = Column(Integer, nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)

@@ -10,7 +10,7 @@
     <ul>
         {% for restaurant in restaurants %}
         <li>
-            {{ restaurant.name }} -
+            <a href="/restaurant/detail/{{ restaurant.id }}">{{ restaurant.name }}</a> -
             <a href="/restaurant/edit/{{ restaurant.id }}">Edit</a>
         </li>
         {% endfor %}
@@ -20,7 +20,7 @@
     <ul>
         {% for item in reservations %}
         <li>
-            Restaurant: {{ item.restaurant.name }},
+            Restaurant: <a href="/restaurant/detail/{{ item.restaurant.id }}">{{ item.restaurant.name }}</a>,
             Client: {{ item.client.email }},
             Start: {{ item.reservation.start_time }},
             End: {{ item.reservation.end_time }}

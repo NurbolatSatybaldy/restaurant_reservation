@@ -3,7 +3,7 @@ from datetime import datetime
 
 class ReservationBase(BaseModel):
     restaurant_id: int
-    table_number: int  # New field for table selection
+    table_number: int
     start_time: datetime
     end_time: datetime
 
@@ -15,4 +15,4 @@ class ReservationResponse(ReservationBase):
     client_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
